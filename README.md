@@ -47,3 +47,6 @@ For a public App Store release aimed at children, additional work is still requi
 - Improves service-worker updating so future GitHub Pages changes are less likely to remain stuck on an old cached version.
 
 - Home character sizing adjusted to fit neatly inside its circle.
+
+
+Final polish: centred and resized the small header/diary avatar so it stays fully inside its circular frame on iPhone and iPad.
