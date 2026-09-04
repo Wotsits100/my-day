@@ -35,3 +35,11 @@ For a public App Store release aimed at children, additional work is still requi
 - Improved iPad/tablet layout
 - Stronger backup reminder
 - Updated offline cache so installed devices receive the new version
+
+## Version 2.1
+- Adds **Restore diary from backup** in the Parent Area.
+- Restores diary entries, voice recordings, drawings, feelings, notes and profile/settings from `my-day-backup.json`.
+- Uses an atomic IndexedDB replacement so a failed restore does not leave a half-restored diary.
+- Improves service-worker updating so future GitHub Pages changes are less likely to remain stuck on an old cached version.
+
+- Home character sizing adjusted to fit neatly inside its circle.

@@ -77,6 +77,9 @@
       .record{width:210px;height:210px}
       nav{width:min(900px,100%)}
     }
+    .homeAvatarPreview{width:126px;height:126px;margin:8px auto 24px;overflow:hidden}
+    .homeAvatarPreview .avatarArt{transform:scale(.68)!important;transform-origin:center center}
+    .homeAvatarPreview + h2{margin-top:0}
     .avatarArt{position:relative;width:150px;height:170px;margin:auto}
     .avHead{position:absolute;left:37px;top:24px;width:76px;height:82px;border-radius:48% 48% 46% 46%;background:var(--skin,#d99b6c);z-index:3}
     .avEar{position:absolute;top:57px;width:16px;height:25px;border-radius:50%;background:var(--skin,#d99b6c);z-index:2}
@@ -119,7 +122,7 @@
   </div>
   <div id="onThisDay" class="card" style="display:none"></div>
   <div class="card center">
-    <div id="homeAvatar" class="avatarPreview" style="width:100px;height:100px;font-size:54px">🙂</div>
+    <div id="homeAvatar" class="avatarPreview homeAvatarPreview">🙂</div>
     <h2>Your space, your way</h2>
     <p class="muted">Choose your name, character and favourite look.</p>
     <button class="smallbtn" onclick="go('character')">✨ Customise My Day</button>
@@ -200,7 +203,7 @@
     <div class="switchrow"><span>Show “On This Day”</span><input id="allowMemory" type="checkbox" checked></div>
     <div class="switchrow"><span>Allow typed notes</span><input id="allowNotes" type="checkbox" checked></div>
   </div>
-  <div class="card"><h2>Backup</h2><p class="muted"><b>Recommended:</b> make a backup from time to time so precious recordings are not lost if the iPad is replaced, reset or its website data is cleared.</p><button class="btn plain" onclick="exportBackup()">⬇️ Export diary backup</button></div>
+  <div class="card"><h2>Backup & restore</h2><p class="muted"><b>Recommended:</b> make a backup from time to time so precious recordings are not lost if the iPad is replaced, reset or its website data is cleared.</p><button class="btn plain" onclick="exportBackup()">⬇️ Export diary backup</button><button class="btn plain" onclick="$('restoreFile').click()">⬆️ Restore diary from backup</button><input id="restoreFile" type="file" accept="application/json,.json" hidden onchange="restoreBackup(event)"><p class="muted">Restoring brings back diary entries, recordings, drawings and personalisation from a My Day backup file.</p></div>
   <div class="card"><h2>Parent passcode</h2><p class="muted">Change the four-digit code used to open this area.</p><input id="newPin" class="field" maxlength="4" inputmode="numeric" placeholder="New 4-digit code"><button class="btn plain" onclick="changePin()">Change passcode</button></div>
   <div class="card"><h2>Privacy</h2><p class="muted">Entries are stored locally in this browser/app. Deleting app/site data can remove them, so use backup if the memories matter long-term.</p></div>
   <button class="btn danger" onclick="confirmErase()">🗑️ Erase all diary data</button>
@@ -297,6 +300,7 @@ async function putEntry(entry){const db=await dbp;return new Promise((res,rej)=>
 async function getEntries(){const db=await dbp;return new Promise((res,rej)=>{const r=db.transaction('entries').objectStore('entries').getAll();r.onsuccess=()=>res(r.result.sort((a,b)=>new Date(b.date)-new Date(a.date)));r.onerror=()=>rej(r.error)})}
 async function deleteEntry(id){const db=await dbp;return new Promise((res,rej)=>{const tx=db.transaction('entries','readwrite');tx.objectStore('entries').delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
 async function clearEntries(){const db=await dbp;return new Promise((res,rej)=>{const tx=db.transaction('entries','readwrite');tx.objectStore('entries').clear();tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+async function replaceEntries(entries){const db=await dbp;return new Promise((res,rej)=>{const tx=db.transaction('entries','readwrite');const store=tx.objectStore('entries');store.clear();for(const entry of entries)store.put(entry);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new Error('Restore was cancelled.'))})}
 
 async function saveCurrentEntry(){
  const note=settings.notes?$('note').value.trim():'';
@@ -369,6 +373,33 @@ async function exportBackup(){
  const blob=new Blob([JSON.stringify({app:'My Day',version:1,profile,settings:{...settings,pin:undefined},entries:serial},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-day-backup.json';a.click();URL.revokeObjectURL(a.href);toast('Backup created.')}
 function blobToDataURL(blob){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(blob)})}
+
+function dataURLToBlob(dataURL){
+ const parts=String(dataURL).split(',');if(parts.length<2)throw new Error('A recording in this backup is not valid.');
+ const meta=parts[0],mime=(meta.match(/^data:([^;]+)/)||[])[1]||'application/octet-stream';
+ const binary=atob(parts.slice(1).join(','));const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new Blob([bytes],{type:mime});
+}
+async function restoreBackup(event){
+ const input=event.target,file=input.files&&input.files[0];if(!file)return;
+ try{
+  const text=await file.text();const backup=JSON.parse(text);
+  if(!backup||backup.app!=='My Day'||!Array.isArray(backup.entries))throw new Error('That does not look like a My Day backup file.');
+  const restored=[];
+  for(const e of backup.entries){
+   if(!e||!e.id||!e.date)throw new Error('One of the diary entries in this backup is incomplete.');
+   restored.push({...e,audio:e.audio?dataURLToBlob(e.audio):null});
+  }
+  const existing=await getEntries();
+  const msg=existing.length?`This backup contains ${restored.length} diar${restored.length===1?'y entry':'y entries'}. It will replace the ${existing.length} currently on this device. Continue?`:`Restore ${restored.length} diar${restored.length===1?'y entry':'y entries'} from this backup?`;
+  if(!confirm(msg))return;
+  await replaceEntries(restored);
+  if(backup.profile&&typeof backup.profile==='object'){Object.assign(profile,backup.profile);localStorage.setItem('myday_profile',JSON.stringify(profile));}
+  if(backup.settings&&typeof backup.settings==='object'){const currentPin=settings.pin;Object.assign(settings,backup.settings);settings.pin=currentPin||'1234';localStorage.setItem('myday_settings',JSON.stringify(settings));}
+  refreshProfileUI();renderCharacter();loadParentSettings();showOnThisDay();
+  alert(`Restore complete. ${restored.length} diar${restored.length===1?'y entry':'y entries'} restored.`);go('diary');
+ }catch(err){console.error(err);alert(`My Day could not restore this backup. ${err.message||''}`.trim())}
+ finally{input.value='';}
+}
 
 /* On This Day */
 async function showOnThisDay(){
