@@ -1,0 +1,10 @@
+{
+  "name": "My Day \u2014 Voice Diary",
+  "short_name": "My Day",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f8ff",
+  "theme_color": "#7d8cff",
+  "description": "A private, child-friendly voice diary for talking, drawing and remembering.",
+  "icons": []
+}

@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#7d8cff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="My Day" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <title>My Day</title>
+  <style>
+    :root{
+      --bg:#f7f8ff; --card:#ffffff; --ink:#28304f; --muted:#737a98;
+      --accent:#7d8cff; --accent2:#65c9b7; --soft:#eef0ff; --danger:#e35f72;
+      --shadow:0 12px 35px rgba(45,55,100,.10);
+      --radius:26px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,#f5f7ff,#fbfbff);color:var(--ink)}
+    button,input{font:inherit}
+    button{border:0;cursor:pointer}
+    .app{max-width:480px;margin:auto;min-height:100vh;background:rgba(255,255,255,.5);position:relative;padding-bottom:92px}
+    header{position:sticky;top:0;z-index:10;backdrop-filter:blur(18px);background:rgba(248,249,255,.86);padding:env(safe-area-inset-top) 18px 10px;border-bottom:1px solid rgba(100,110,160,.08)}
+    .toprow{display:flex;align-items:center;justify-content:space-between;padding-top:10px}
+    .brand{font-weight:900;font-size:30px;letter-spacing:-1.2px}
+    .miniAvatar{width:44px;height:44px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:25px}
+    main{padding:14px 18px 30px}
+    .screen{display:none}.screen.active{display:block}
+    h1{font-size:30px;line-height:1.1;margin:14px 0 7px;letter-spacing:-.7px}
+    h2{font-size:20px;margin:0 0 10px}
+    p{line-height:1.45}.muted{color:var(--muted)}
+    .hero{background:linear-gradient(145deg,var(--soft),#fff);border-radius:32px;padding:22px;box-shadow:var(--shadow);margin:8px 0 16px}
+    .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin:12px 0}
+    .btn{width:100%;padding:18px;border-radius:21px;font-weight:800;font-size:17px;margin:7px 0;text-align:left;background:var(--soft);color:var(--ink)}
+    .primary{background:linear-gradient(135deg,var(--accent),#9d91ff);color:white}
+    .green{background:linear-gradient(135deg,var(--accent2),#8ed7bd);color:white}
+    .plain{background:#f1f3fb}
+    .danger{background:#fff0f2;color:var(--danger)}
+    .center{text-align:center}
+    .record{width:178px;height:178px;border-radius:50%;display:grid;place-items:center;margin:34px auto 16px;background:linear-gradient(145deg,var(--accent),#a291ff);box-shadow:0 20px 38px rgba(112,110,255,.27);font-size:58px;color:white}
+    .record.recording{animation:pulse 1.1s infinite alternate}
+    @keyframes pulse{to{transform:scale(1.045);box-shadow:0 24px 50px rgba(112,110,255,.36)}}
+    .timer{font-size:22px;font-weight:800}.status{color:var(--muted);margin-top:6px}
+    .emojiGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+    .emoji{font-size:31px;background:#f7f7fb;border:2px solid transparent;border-radius:18px;padding:10px}
+    .emoji.sel{border-color:var(--accent);background:var(--soft);transform:scale(1.04)}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}.chip{padding:8px 11px;border-radius:999px;background:var(--soft);font-size:14px}
+    canvas{width:100%;height:320px;border-radius:22px;border:2px dashed #d8dcec;background:white;touch-action:none}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.tool{padding:10px 12px;border-radius:14px;background:#f1f3fb}
+    .swatch{width:34px;height:34px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 1px #d8dcec}
+    .entry{display:grid;grid-template-columns:54px 1fr;gap:12px;align-items:start}
+    .entry .ava{width:54px;height:54px;border-radius:18px;background:var(--soft);display:grid;place-items:center;font-size:31px}
+    .entryTitle{font-weight:850}.entryMeta{font-size:13px;color:var(--muted);margin-top:3px}
+    audio{width:100%;margin-top:10px}
+    .drawingImg{width:100%;border-radius:18px;margin-top:10px;border:1px solid #eceef6}
+    .row{display:flex;gap:8px}.row>*{flex:1}
+    .smallbtn{padding:10px 12px;border-radius:14px;background:#f2f3f9}
+    .avatarPreview{width:170px;height:170px;border-radius:50%;display:grid;place-items:center;margin:8px auto 18px;font-size:86px;background:var(--soft)}
+    .options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.opt{padding:11px;border-radius:15px;background:#f4f5fa;font-size:28px}.opt.sel{outline:3px solid var(--accent);background:var(--soft)}
+    .themeOpt{font-size:14px;font-weight:750}.field{width:100%;padding:14px;border:2px solid #e8eaf2;border-radius:16px;background:white}
+    .switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0}
+    .switchrow input{transform:scale(1.25)}
+    nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100%);padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.92);backdrop-filter:blur(18px);border-top:1px solid #eceef6;display:flex;justify-content:space-around;z-index:20}
+    nav button{background:transparent;color:var(--muted);font-size:12px;padding:5px 7px}nav b{display:block;font-size:22px;margin-bottom:2px}
+    .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#29304f;color:white;padding:12px 17px;border-radius:16px;display:none;z-index:40;max-width:85%;text-align:center}
+    .empty{padding:30px 10px;text-align:center;color:var(--muted)}
+    .badge{font-size:12px;padding:5px 8px;border-radius:999px;background:#eef0ff;display:inline-block}
+    .install{display:none}
+    dialog{border:0;border-radius:24px;padding:20px;max-width:400px;width:90%;box-shadow:var(--shadow)}
+    dialog::backdrop{background:rgba(25,30,55,.35)}
+  </style>
+</head>
+<body>
+<div class="app">
+<header><div class="toprow"><div class="brand">My Day</div><div id="topAvatar" class="miniAvatar">🙂</div></div></header>
+<main>
+<section id="home" class="screen active">
+  <div class="hero">
+    <div class="badge">Private by default</div>
+    <h1 id="hello">How was your day?</h1>
+    <p class="muted">Talk, draw, add feelings and keep the little moments you want to remember.</p>
+    <button class="btn primary" onclick="go('record')">🎙️ &nbsp; Tell my day</button>
+    <button class="btn plain" onclick="go('draw')">🎨 &nbsp; Draw something</button>
+    <button class="btn plain" onclick="go('diary')">📖 &nbsp; Look back</button>
+  </div>
+  <div id="onThisDay" class="card" style="display:none"></div>
+  <div class="card center">
+    <div id="homeAvatar" class="avatarPreview" style="width:100px;height:100px;font-size:54px">🙂</div>
+    <h2>Your space, your way</h2>
+    <p class="muted">Choose your name, character and favourite look.</p>
+    <button class="smallbtn" onclick="go('character')">✨ Customise My Day</button>
+  </div>
+  <div class="card install" id="installCard"><h2>Add My Day to your phone</h2><p class="muted">Install it so it opens like a normal app.</p><button class="btn green" id="installBtn">📲 Install My Day</button></div>
+</section>
+
+<section id="record" class="screen">
+  <button class="smallbtn" onclick="go('home')">← Back</button>
+  <h1 class="center">Tell me about your day</h1>
+  <p class="muted center">Tap once to start. Tap again when you're finished.</p>
+  <button id="recordBtn" class="record" onclick="toggleRecording()">🎙️</button>
+  <div class="center"><div id="timer" class="timer">00:00</div><div id="recordStatus" class="status">Ready when you are.</div></div>
+  <button id="continueRecord" class="btn green" style="display:none" onclick="go('feel')">Next →</button>
+</section>
+
+<section id="feel" class="screen">
+  <button class="smallbtn" onclick="go('record')">← Back</button>
+  <h1>How are you feeling?</h1><p class="muted">Choose as many as you like, or choose none.</p>
+  <div class="emojiGrid" id="emojiGrid"></div>
+  <button class="btn primary" onclick="go('extras')">Next →</button>
+</section>
+
+<section id="extras" class="screen">
+  <button class="smallbtn" onclick="go('feel')">← Back</button>
+  <h1>Add something?</h1><p class="muted">Optional extras for today's memory.</p>
+  <button class="btn plain" onclick="go('draw')">🎨 Add a drawing</button>
+  <label class="card" style="display:block"><b>A little note</b><p class="muted">Only if you want to type something.</p><input id="note" class="field" maxlength="280" placeholder="One little thing I want to remember…"></label>
+  <button class="btn green" onclick="saveCurrentEntry()">💾 Save my day</button>
+</section>
+
+<section id="draw" class="screen">
+  <button class="smallbtn" onclick="go('home')">← Back</button>
+  <h1>Draw something</h1><p class="muted">Doodle, scribble or draw part of your day.</p>
+  <canvas id="canvas" width="900" height="640"></canvas>
+  <div class="toolbar">
+    <button class="tool" onclick="clearCanvas()">↺ Clear</button>
+    <button class="swatch" style="background:#6778ff" onclick="setColour('#6778ff')"></button>
+    <button class="swatch" style="background:#2bb69f" onclick="setColour('#2bb69f')"></button>
+    <button class="swatch" style="background:#f29a45" onclick="setColour('#f29a45')"></button>
+    <button class="swatch" style="background:#ef6e9d" onclick="setColour('#ef6e9d')"></button>
+    <button class="swatch" style="background:#2f3454" onclick="setColour('#2f3454')"></button>
+    <button class="tool" onclick="setWidth(8)">Thin</button>
+    <button class="tool" onclick="setWidth(22)">Thick</button>
+  </div>
+  <div class="row"><button class="btn plain" onclick="saveDrawingOnly()">Save as drawing</button><button class="btn green" onclick="attachDrawing()">Add to current day</button></div>
+</section>
+
+<section id="diary" class="screen">
+  <h1>My Diary</h1><p class="muted">Your memories, newest first.</p>
+  <div id="entries"></div>
+</section>
+
+<section id="character" class="screen">
+  <button class="smallbtn" onclick="go('home')">← Back</button>
+  <h1>Make My Day yours</h1>
+  <div id="characterPreview" class="avatarPreview">🙂</div>
+  <div class="card"><b>What should My Day call you?</b><p class="muted">A name, nickname or initials are all fine.</p><input id="profileName" class="field" maxlength="24" placeholder="My name…"></div>
+  <div class="card"><b>Character style</b><div id="faceOpts" class="options"></div></div>
+  <div class="card"><b>Hair / head</b><div id="hairOpts" class="options"></div></div>
+  <div class="card"><b>Clothes</b><div id="outfitOpts" class="options"></div></div>
+  <div class="card"><b>Accessories</b><div id="extraOpts" class="options"></div></div>
+  <div class="card"><b>Choose your vibe</b><p class="muted">None of these are linked to gender.</p><div id="themeOpts" class="options"></div></div>
+  <button class="btn primary" onclick="saveProfile()">Save my choices</button>
+</section>
+
+<section id="parent" class="screen">
+  <button class="smallbtn" onclick="go('home')">← Back</button>
+  <h1>Parent Area 🔒</h1><p class="muted">Settings for the grown-up who set up My Day.</p>
+  <div class="card">
+    <div class="switchrow"><span>Allow drawings</span><input id="allowDraw" type="checkbox" checked></div>
+    <div class="switchrow"><span>Show “On This Day”</span><input id="allowMemory" type="checkbox" checked></div>
+    <div class="switchrow"><span>Allow typed notes</span><input id="allowNotes" type="checkbox" checked></div>
+  </div>
+  <div class="card"><h2>Backup</h2><p class="muted">Create a private backup file on this device. This prototype does not upload diary content to a server.</p><button class="btn plain" onclick="exportBackup()">⬇️ Export diary backup</button></div>
+  <div class="card"><h2>Parent passcode</h2><p class="muted">Change the four-digit code used to open this area.</p><input id="newPin" class="field" maxlength="4" inputmode="numeric" placeholder="New 4-digit code"><button class="btn plain" onclick="changePin()">Change passcode</button></div>
+  <div class="card"><h2>Privacy</h2><p class="muted">Entries are stored locally in this browser/app. Deleting app/site data can remove them, so use backup if the memories matter long-term.</p></div>
+  <button class="btn danger" onclick="confirmErase()">🗑️ Erase all diary data</button>
+</section>
+</main>
+
+<nav>
+  <button onclick="go('home')"><b>🏠</b>Home</button>
+  <button onclick="go('record')"><b>🎙️</b>Record</button>
+  <button onclick="go('diary')"><b>📖</b>Diary</button>
+  <button onclick="go('character')"><b>✨</b>Me</button>
+  <button onclick="parentGate()"><b>🔒</b>Parent</button>
+</nav>
+<div id="toast" class="toast"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const EMOJIS=['😊','😄','🥰','😎','😐','😕','😢','😡','😴','🤩','😂','😇','🤗','😌','🙄','🥳','❤️','⭐','🌈','🫶'];
+let selectedEmojis=[], audioBlob=null, drawingData=null, mediaRecorder=null, chunks=[], timerInt=null, started=0;
+let deferredPrompt=null;
+
+const profile = JSON.parse(localStorage.getItem('myday_profile')||'{"name":"","face":"🙂","hair":"🧑‍🦱","outfit":"👕","extra":"✨","theme":"Rainbow"}');
+const settings = JSON.parse(localStorage.getItem('myday_settings')||'{"draw":true,"memory":true,"notes":true,"pin":"1234"}');
+
+const themes={
+  Rainbow:{accent:'#7d8cff',accent2:'#65c9b7',soft:'#eef0ff'},
+  Nature:{accent:'#4aa88f',accent2:'#8bbd63',soft:'#edf8f1'},
+  Night:{accent:'#5f69b8',accent2:'#7a7fcf',soft:'#eff0fb'},
+  Sunshine:{accent:'#e9a13a',accent2:'#d1b84f',soft:'#fff6df'},
+  Space:{accent:'#6b67c9',accent2:'#7b8ee0',soft:'#f0effd'},
+  Colourful:{accent:'#e16f91',accent2:'#64bcb2',soft:'#fff0f5'}
+};
+function applyTheme(){
+  const t=themes[profile.theme]||themes.Rainbow;
+  document.documentElement.style.setProperty('--accent',t.accent);
+  document.documentElement.style.setProperty('--accent2',t.accent2);
+  document.documentElement.style.setProperty('--soft',t.soft);
+}
+function avatarHTML(size='large'){
+ return `<div style="position:relative;line-height:1">${profile.face}<span style="position:absolute;left:-4px;top:${size==='large'?44:20}px;font-size:${size==='large'?46:24}px">${profile.hair}</span><span style="position:absolute;left:${size==='large'?52:24}px;top:${size==='large'?88:39}px;font-size:${size==='large'?35:18}px">${profile.outfit}</span><span style="position:absolute;right:-3px;top:2px;font-size:${size==='large'?30:16}px">${profile.extra}</span></div>`;
+}
+function refreshProfileUI(){
+ applyTheme();
+ $('topAvatar').innerHTML=avatarHTML('small');
+ $('homeAvatar').innerHTML=avatarHTML('large');
+ if(profile.name) $('hello').textContent=`How was your day, ${profile.name}?`;
+ $('profileName').value=profile.name||'';
+ $('characterPreview').innerHTML=avatarHTML('large');
+}
+function go(id){
+ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+ $(id).classList.add('active');
+ if(id==='diary') renderEntries();
+ if(id==='character') renderCharacter();
+ if(id==='parent') loadParentSettings();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1800)}
+
+$('emojiGrid').innerHTML=EMOJIS.map((e,i)=>`<button class="emoji" onclick="toggleEmoji(${i})">${e}</button>`).join('');
+function toggleEmoji(i){const e=EMOJIS[i];selectedEmojis=selectedEmojis.includes(e)?selectedEmojis.filter(x=>x!==e):[...selectedEmojis,e];document.querySelectorAll('.emoji').forEach((b,j)=>b.classList.toggle('sel',selectedEmojis.includes(EMOJIS[j])))}
+
+async function toggleRecording(){
+ if(mediaRecorder && mediaRecorder.state==='recording'){mediaRecorder.stop();return}
+ try{
+   const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+   chunks=[]; audioBlob=null; mediaRecorder=new MediaRecorder(stream); started=Date.now();
+   mediaRecorder.ondataavailable=e=>chunks.push(e.data);
+   mediaRecorder.onstop=()=>{
+     audioBlob=new Blob(chunks,{type:mediaRecorder.mimeType||'audio/webm'});
+     stream.getTracks().forEach(t=>t.stop());
+     $('recordBtn').classList.remove('recording');$('recordBtn').textContent='▶️';
+     $('recordStatus').textContent='Your recording is ready.';$('continueRecord').style.display='block';
+     clearInterval(timerInt);
+   };
+   mediaRecorder.start();$('recordBtn').classList.add('recording');$('recordBtn').textContent='⏹️';$('recordStatus').textContent="I'm listening…";
+   timerInt=setInterval(()=>{const s=Math.floor((Date.now()-started)/1000);$('timer').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},250);
+ }catch(e){toast('Microphone access is needed to record your day.')}
+}
+
+/* IndexedDB */
+let dbp=new Promise((resolve,reject)=>{
+ const req=indexedDB.open('MyDayDB',1);
+ req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('entries'))db.createObjectStore('entries',{keyPath:'id'});}
+ req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+});
+async function putEntry(entry){const db=await dbp;return new Promise((res,rej)=>{const tx=db.transaction('entries','readwrite');tx.objectStore('entries').put(entry);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+async function getEntries(){const db=await dbp;return new Promise((res,rej)=>{const r=db.transaction('entries').objectStore('entries').getAll();r.onsuccess=()=>res(r.result.sort((a,b)=>new Date(b.date)-new Date(a.date)));r.onerror=()=>rej(r.error)})}
+async function deleteEntry(id){const db=await dbp;return new Promise((res,rej)=>{const tx=db.transaction('entries','readwrite');tx.objectStore('entries').delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+async function clearEntries(){const db=await dbp;return new Promise((res,rej)=>{const tx=db.transaction('entries','readwrite');tx.objectStore('entries').clear();tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+
+async function saveCurrentEntry(){
+ const note=settings.notes?$('note').value.trim():'';
+ if(!audioBlob && !drawingData && !note){toast('Add a voice note, drawing or little note first.');return}
+ const entry={id:crypto.randomUUID(),date:new Date().toISOString(),emojis:[...selectedEmojis],note,drawing:drawingData,audio:audioBlob};
+ await putEntry(entry); resetDraft(); toast('Your day has been saved ✨'); go('diary');
+}
+function resetDraft(){selectedEmojis=[];audioBlob=null;drawingData=null;$('note').value='';$('timer').textContent='00:00';$('continueRecord').style.display='none';$('recordBtn').textContent='🎙️';$('recordStatus').textContent='Ready when you are.';document.querySelectorAll('.emoji').forEach(b=>b.classList.remove('sel'));clearCanvas()}
+
+async function renderEntries(){
+ const es=await getEntries(); const box=$('entries');
+ if(!es.length){box.innerHTML='<div class="empty"><div style="font-size:52px">🌱</div><h2>Your first memory is waiting</h2><p>Tap Record when you feel like telling My Day something.</p></div>';return}
+ box.innerHTML=es.map(e=>{
+   const a=e.audio?URL.createObjectURL(e.audio):'';
+   return `<div class="card entry"><div class="ava">${profile.face}</div><div>
+   <div class="entryTitle">${new Date(e.date).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+   <div class="entryMeta">${new Date(e.date).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+   <div class="chips">${(e.emojis||[]).map(x=>`<span class="chip">${x}</span>`).join('')}</div>
+   ${e.note?`<p>${escapeHTML(e.note)}</p>`:''}
+   ${a?`<audio controls src="${a}"></audio>`:''}
+   ${e.drawing?`<img class="drawingImg" src="${e.drawing}" alt="Diary drawing">`:''}
+   <button class="smallbtn" onclick="removeEntry('${e.id}')">Delete this entry</button>
+   </div></div>`
+ }).join('');
+}
+function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+async function removeEntry(id){if(confirm('Delete this diary entry?')){await deleteEntry(id);renderEntries();toast('Entry deleted.')}}
+
+/* Drawing */
+const canvas=$('canvas'),ctx=canvas.getContext('2d');let drawing=false,colour='#6778ff',width=12;
+function xy(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
+canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture(e.pointerId);const p=xy(e);ctx.beginPath();ctx.moveTo(p.x,p.y)});
+canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=xy(e);ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=colour;ctx.lineTo(p.x,p.y);ctx.stroke()});
+canvas.addEventListener('pointerup',()=>drawing=false);
+function setColour(c){colour=c}function setWidth(w){width=w}function clearCanvas(){ctx.clearRect(0,0,canvas.width,canvas.height)}
+function attachDrawing(){if(!settings.draw){toast('Drawings are turned off in Parent Area.');return}drawingData=canvas.toDataURL('image/png');toast('Drawing added to your day.');go('extras')}
+async function saveDrawingOnly(){if(!settings.draw){toast('Drawings are turned off in Parent Area.');return}drawingData=canvas.toDataURL('image/png');audioBlob=null;selectedEmojis=[];$('note').value='';await saveCurrentEntry()}
+
+/* Character */
+const opts={face:['🙂','😊','😎','🤓','😄','🥰'],hair:['🧑‍🦱','🧑‍🦰','🧑‍🦳','🧑‍🎤','🧢','🎩','👒','🪮'],outfit:['👕','🧥','🥋','🦸','🧚','⚽','🎽','🧣'],extra:['✨','🎀','🕶️','🌸','⭐','🎧','🪄','🌈']};
+function renderOption(id,key){$(id).innerHTML=opts[key].map(v=>`<button class="opt ${profile[key]===v?'sel':''}" onclick="profile.${key}='${v}';renderCharacter()">${v}</button>`).join('')}
+function renderCharacter(){
+ renderOption('faceOpts','face');renderOption('hairOpts','hair');renderOption('outfitOpts','outfit');renderOption('extraOpts','extra');
+ $('themeOpts').innerHTML=Object.keys(themes).map(t=>`<button class="opt themeOpt ${profile.theme===t?'sel':''}" onclick="profile.theme='${t}';renderCharacter()">${t}</button>`).join('');
+ $('characterPreview').innerHTML=avatarHTML('large');$('profileName').value=profile.name||'';
+}
+function saveProfile(){profile.name=$('profileName').value.trim();localStorage.setItem('myday_profile',JSON.stringify(profile));refreshProfileUI();toast('My Day has been personalised ✨');go('home')}
+
+/* Parent */
+function parentGate(){const pin=prompt('Enter the parent passcode');if(pin===settings.pin)go('parent');else if(pin!==null)toast('That passcode is not correct.')}
+function loadParentSettings(){$('allowDraw').checked=settings.draw;$('allowMemory').checked=settings.memory;$('allowNotes').checked=settings.notes}
+['allowDraw','allowMemory','allowNotes'].forEach(id=>$(id).addEventListener('change',()=>{
+ settings.draw=$('allowDraw').checked;settings.memory=$('allowMemory').checked;settings.notes=$('allowNotes').checked;localStorage.setItem('myday_settings',JSON.stringify(settings));showOnThisDay();
+}));
+function changePin(){const p=$('newPin').value.trim();if(!/^\d{4}$/.test(p)){toast('Please use exactly four numbers.');return}settings.pin=p;localStorage.setItem('myday_settings',JSON.stringify(settings));$('newPin').value='';toast('Parent passcode changed.')}
+async function confirmErase(){if(confirm('Erase every My Day diary entry on this device? This cannot be undone.')){await clearEntries();toast('All diary entries erased.');go('home')}}
+async function exportBackup(){
+ const es=await getEntries();
+ const serial=[];
+ for(const e of es){let audioData=null;if(e.audio)audioData=await blobToDataURL(e.audio);serial.push({...e,audio:audioData})}
+ const blob=new Blob([JSON.stringify({app:'My Day',version:1,profile,settings:{...settings,pin:undefined},entries:serial},null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-day-backup.json';a.click();URL.revokeObjectURL(a.href);toast('Backup created.')}
+function blobToDataURL(blob){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(blob)})}
+
+/* On This Day */
+async function showOnThisDay(){
+ const box=$('onThisDay');if(!settings.memory){box.style.display='none';return}
+ const es=await getEntries(),now=new Date();const matches=es.filter(e=>{const d=new Date(e.date);return d.getDate()===now.getDate()&&d.getMonth()===now.getMonth()&&d.getFullYear()<now.getFullYear()});
+ if(!matches.length){box.style.display='none';return}
+ const e=matches[0],yrs=now.getFullYear()-new Date(e.date).getFullYear();
+ box.innerHTML=`<h2>✨ On this day</h2><p>${yrs} year${yrs===1?'':'s'} ago, you saved a memory ${e.emojis?.join(' ')||''}</p><button class="smallbtn" onclick="go('diary')">Look back</button>`;box.style.display='block';
+}
+
+/* install */
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installCard').style.display='block'});
+$('installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installCard').style.display='none'});
+
+/* service worker */
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}))}
+
+refreshProfileUI();showOnThisDay();
+</script>
+</body>
+</html>
