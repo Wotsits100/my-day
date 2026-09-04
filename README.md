@@ -1,3 +1,7 @@
+# My Day — Polished Release
+
+This is the polished, iPad-friendly release. It keeps the same local database and backup format as the previous working version, so existing diary entries remain compatible.
+
 # My Day — finished PWA
 
 My Day is an installable, child-friendly voice diary.
