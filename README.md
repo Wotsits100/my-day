@@ -25,3 +25,13 @@ This package is a complete browser/PWA app, not a signed Apple App Store binary.
 To use microphone recording on iPhone, it should be served over HTTPS (or localhost). A simple static web host is enough.
 
 For a public App Store release aimed at children, additional work is still required: Apple developer signing, App Store submission, privacy disclosures, child-safety review, accessibility testing, device testing, and production-grade secure backup/account infrastructure if cloud sync is desired.
+
+
+## Version 2 update
+- Fixed the stacked emoji character display
+- New gender-neutral illustrated character builder
+- Skin tone, hair style/colour, clothes colour and accessory choices
+- Proper My Day Home Screen icon
+- Improved iPad/tablet layout
+- Stronger backup reminder
+- Updated offline cache so installed devices receive the new version

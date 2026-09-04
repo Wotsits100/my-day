@@ -8,6 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="My Day" />
   <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="icon" href="icon-192.png" />
   <title>My Day</title>
   <style>
     :root{
@@ -20,7 +22,7 @@
     body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,#f5f7ff,#fbfbff);color:var(--ink)}
     button,input{font:inherit}
     button{border:0;cursor:pointer}
-    .app{max-width:480px;margin:auto;min-height:100vh;background:rgba(255,255,255,.5);position:relative;padding-bottom:92px}
+    .app{max-width:900px;margin:auto;min-height:100vh;background:rgba(255,255,255,.5);position:relative;padding-bottom:92px}
     header{position:sticky;top:0;z-index:10;backdrop-filter:blur(18px);background:rgba(248,249,255,.86);padding:env(safe-area-inset-top) 18px 10px;border-bottom:1px solid rgba(100,110,160,.08)}
     .toprow{display:flex;align-items:center;justify-content:space-between;padding-top:10px}
     .brand{font-weight:900;font-size:30px;letter-spacing:-1.2px}
@@ -67,6 +69,37 @@
     .empty{padding:30px 10px;text-align:center;color:var(--muted)}
     .badge{font-size:12px;padding:5px 8px;border-radius:999px;background:#eef0ff;display:inline-block}
     .install{display:none}
+    @media(min-width:700px){
+      header{padding-left:34px;padding-right:34px}
+      main{padding:24px 34px 42px}
+      .hero{padding:30px}
+      .emojiGrid{grid-template-columns:repeat(8,1fr)}
+      .record{width:210px;height:210px}
+      nav{width:min(900px,100%)}
+    }
+    .avatarArt{position:relative;width:150px;height:170px;margin:auto}
+    .avHead{position:absolute;left:37px;top:24px;width:76px;height:82px;border-radius:48% 48% 46% 46%;background:var(--skin,#d99b6c);z-index:3}
+    .avEar{position:absolute;top:57px;width:16px;height:25px;border-radius:50%;background:var(--skin,#d99b6c);z-index:2}
+    .avEar.l{left:28px}.avEar.r{right:28px}
+    .avEye{position:absolute;top:57px;width:7px;height:9px;border-radius:50%;background:#29304f;z-index:5}
+    .avEye.l{left:57px}.avEye.r{right:57px}
+    .avSmile{position:absolute;left:65px;top:76px;width:20px;height:10px;border-bottom:3px solid #7d4a47;border-radius:0 0 20px 20px;z-index:5}
+    .avHair{position:absolute;left:29px;top:13px;width:92px;height:56px;border-radius:50% 50% 35% 35%;background:var(--hair,#5b3d2e);z-index:4}
+    .avHair.short{height:43px;border-radius:50% 50% 25% 25%}
+    .avHair.curls{height:50px;background:radial-gradient(circle at 16px 13px,var(--hair) 0 13px,transparent 14px),radial-gradient(circle at 38px 9px,var(--hair) 0 15px,transparent 16px),radial-gradient(circle at 61px 10px,var(--hair) 0 15px,transparent 16px),radial-gradient(circle at 80px 16px,var(--hair) 0 13px,transparent 14px)}
+    .avHair.bun:after{content:"";position:absolute;right:0;top:-12px;width:30px;height:30px;border-radius:50%;background:var(--hair)}
+    .avHair.cap{height:32px;background:var(--accent);border-radius:50% 50% 18% 18%}
+    .avHair.cap:after{content:"";position:absolute;right:-15px;bottom:-4px;width:32px;height:10px;border-radius:10px;background:var(--accent)}
+    .avBody{position:absolute;left:37px;top:103px;width:76px;height:58px;border-radius:24px 24px 18px 18px;background:var(--shirt,#6f8cff);z-index:2}
+    .avNeck{position:absolute;left:63px;top:98px;width:24px;height:18px;background:var(--skin,#d99b6c);z-index:1}
+    .avAccessory{position:absolute;z-index:7}
+    .avAccessory.glasses{left:47px;top:49px;font-size:30px}
+    .avAccessory.star{right:12px;top:18px;font-size:26px}
+    .avAccessory.headphones{left:23px;top:34px;font-size:48px}
+    .palette{display:flex;gap:9px;flex-wrap:wrap}
+    .colourChoice{width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #d8dcec}
+    .colourChoice.sel{box-shadow:0 0 0 3px var(--accent)}
+    .seg{display:flex;gap:8px;flex-wrap:wrap}.seg button{padding:10px 12px;border-radius:14px;background:#f2f3f9;font-weight:750}.seg button.sel{background:var(--soft);outline:2px solid var(--accent)}
     dialog{border:0;border-radius:24px;padding:20px;max-width:400px;width:90%;box-shadow:var(--shadow)}
     dialog::backdrop{background:rgba(25,30,55,.35)}
   </style>
@@ -143,12 +176,18 @@
 <section id="character" class="screen">
   <button class="smallbtn" onclick="go('home')">← Back</button>
   <h1>Make My Day yours</h1>
-  <div id="characterPreview" class="avatarPreview">🙂</div>
+  <p class="muted">Make a character that feels like you — or invent someone completely different.</p>
+  <div id="characterPreview" class="avatarPreview"></div>
   <div class="card"><b>What should My Day call you?</b><p class="muted">A name, nickname or initials are all fine.</p><input id="profileName" class="field" maxlength="24" placeholder="My name…"></div>
-  <div class="card"><b>Character style</b><div id="faceOpts" class="options"></div></div>
-  <div class="card"><b>Hair / head</b><div id="hairOpts" class="options"></div></div>
-  <div class="card"><b>Clothes</b><div id="outfitOpts" class="options"></div></div>
-  <div class="card"><b>Accessories</b><div id="extraOpts" class="options"></div></div>
+  <div class="card">
+    <b>Character</b>
+    <p class="muted">Nothing here is linked to gender — mix and match however you like.</p>
+    <p class="muted">Skin tone</p><div id="skinOpts" class="palette"></div>
+    <p class="muted">Hair style</p><div id="hairStyleOpts" class="seg"></div>
+    <p class="muted">Hair colour</p><div id="hairColourOpts" class="palette"></div>
+    <p class="muted">Clothes colour</p><div id="shirtOpts" class="palette"></div>
+    <p class="muted">Accessory</p><div id="accessoryOpts" class="seg"></div>
+  </div>
   <div class="card"><b>Choose your vibe</b><p class="muted">None of these are linked to gender.</p><div id="themeOpts" class="options"></div></div>
   <button class="btn primary" onclick="saveProfile()">Save my choices</button>
 </section>
@@ -161,7 +200,7 @@
     <div class="switchrow"><span>Show “On This Day”</span><input id="allowMemory" type="checkbox" checked></div>
     <div class="switchrow"><span>Allow typed notes</span><input id="allowNotes" type="checkbox" checked></div>
   </div>
-  <div class="card"><h2>Backup</h2><p class="muted">Create a private backup file on this device. This prototype does not upload diary content to a server.</p><button class="btn plain" onclick="exportBackup()">⬇️ Export diary backup</button></div>
+  <div class="card"><h2>Backup</h2><p class="muted"><b>Recommended:</b> make a backup from time to time so precious recordings are not lost if the iPad is replaced, reset or its website data is cleared.</p><button class="btn plain" onclick="exportBackup()">⬇️ Export diary backup</button></div>
   <div class="card"><h2>Parent passcode</h2><p class="muted">Change the four-digit code used to open this area.</p><input id="newPin" class="field" maxlength="4" inputmode="numeric" placeholder="New 4-digit code"><button class="btn plain" onclick="changePin()">Change passcode</button></div>
   <div class="card"><h2>Privacy</h2><p class="muted">Entries are stored locally in this browser/app. Deleting app/site data can remove them, so use backup if the memories matter long-term.</p></div>
   <button class="btn danger" onclick="confirmErase()">🗑️ Erase all diary data</button>
@@ -184,7 +223,8 @@ const EMOJIS=['😊','😄','🥰','😎','😐','😕','😢','😡','😴','�
 let selectedEmojis=[], audioBlob=null, drawingData=null, mediaRecorder=null, chunks=[], timerInt=null, started=0;
 let deferredPrompt=null;
 
-const profile = JSON.parse(localStorage.getItem('myday_profile')||'{"name":"","face":"🙂","hair":"🧑‍🦱","outfit":"👕","extra":"✨","theme":"Rainbow"}');
+const profile = JSON.parse(localStorage.getItem('myday_profile')||'{"name":"","skin":"#d99b6c","hairStyle":"curls","hairColour":"#5b3d2e","shirt":"#6f8cff","accessory":"star","theme":"Rainbow"}');
+if(!profile.skin){profile.skin="#d99b6c";profile.hairStyle="curls";profile.hairColour="#5b3d2e";profile.shirt="#6f8cff";profile.accessory="star";}
 const settings = JSON.parse(localStorage.getItem('myday_settings')||'{"draw":true,"memory":true,"notes":true,"pin":"1234"}');
 
 const themes={
@@ -202,7 +242,11 @@ function applyTheme(){
   document.documentElement.style.setProperty('--soft',t.soft);
 }
 function avatarHTML(size='large'){
- return `<div style="position:relative;line-height:1">${profile.face}<span style="position:absolute;left:-4px;top:${size==='large'?44:20}px;font-size:${size==='large'?46:24}px">${profile.hair}</span><span style="position:absolute;left:${size==='large'?52:24}px;top:${size==='large'?88:39}px;font-size:${size==='large'?35:18}px">${profile.outfit}</span><span style="position:absolute;right:-3px;top:2px;font-size:${size==='large'?30:16}px">${profile.extra}</span></div>`;
+ const scale=size==='small'?.32:1;
+ const acc=profile.accessory||'none';
+ const a=acc==='glasses'?'<div class="avAccessory glasses">👓</div>':acc==='star'?'<div class="avAccessory star">⭐</div>':acc==='headphones'?'<div class="avAccessory headphones">🎧</div>':'';
+ return `<div class="avatarArt" style="transform:scale(${scale});transform-origin:center;${size==='small'?'width:48px;height:54px':''};--skin:${profile.skin};--hair:${profile.hairColour};--shirt:${profile.shirt}">
+ <div class="avEar l"></div><div class="avEar r"></div><div class="avNeck"></div><div class="avBody"></div><div class="avHead"></div><div class="avHair ${profile.hairStyle}"></div><div class="avEye l"></div><div class="avEye r"></div><div class="avSmile"></div>${a}</div>`;
 }
 function refreshProfileUI(){
  applyTheme();
@@ -267,7 +311,7 @@ async function renderEntries(){
  if(!es.length){box.innerHTML='<div class="empty"><div style="font-size:52px">🌱</div><h2>Your first memory is waiting</h2><p>Tap Record when you feel like telling My Day something.</p></div>';return}
  box.innerHTML=es.map(e=>{
    const a=e.audio?URL.createObjectURL(e.audio):'';
-   return `<div class="card entry"><div class="ava">${profile.face}</div><div>
+   return `<div class="card entry"><div class="ava">${avatarHTML('small')}</div><div>
    <div class="entryTitle">${new Date(e.date).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
    <div class="entryMeta">${new Date(e.date).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
    <div class="chips">${(e.emojis||[]).map(x=>`<span class="chip">${x}</span>`).join('')}</div>
@@ -292,14 +336,23 @@ function attachDrawing(){if(!settings.draw){toast('Drawings are turned off in Pa
 async function saveDrawingOnly(){if(!settings.draw){toast('Drawings are turned off in Parent Area.');return}drawingData=canvas.toDataURL('image/png');audioBlob=null;selectedEmojis=[];$('note').value='';await saveCurrentEntry()}
 
 /* Character */
-const opts={face:['🙂','😊','😎','🤓','😄','🥰'],hair:['🧑‍🦱','🧑‍🦰','🧑‍🦳','🧑‍🎤','🧢','🎩','👒','🪮'],outfit:['👕','🧥','🥋','🦸','🧚','⚽','🎽','🧣'],extra:['✨','🎀','🕶️','🌸','⭐','🎧','🪄','🌈']};
-function renderOption(id,key){$(id).innerHTML=opts[key].map(v=>`<button class="opt ${profile[key]===v?'sel':''}" onclick="profile.${key}='${v}';renderCharacter()">${v}</button>`).join('')}
+const characterChoices={
+ skin:['#f6d7c3','#e8b894','#d99b6c','#b97952','#8b5a3c','#5f3b2a'],
+ hairColour:['#2e241f','#5b3d2e','#8c5d3d','#c07b4f','#d8b15a','#8b6a9e'],
+ shirt:['#6f8cff','#4ab49d','#e88757','#dc7096','#8d78c7','#4e6078'],
+ hairStyle:['short','curls','bun','cap'],
+ accessory:['none','glasses','star','headphones']
+};
+const labels={short:'Short',curls:'Curls',bun:'Bun',cap:'Cap',none:'None',glasses:'Glasses',star:'Star',headphones:'Headphones'};
+function colourOptions(id,key){$(id).innerHTML=characterChoices[key].map(c=>`<button class="colourChoice ${profile[key]===c?'sel':''}" style="background:${c}" onclick="profile.${key}='${c}';renderCharacter()"></button>`).join('')}
+function textOptions(id,key){$(id).innerHTML=characterChoices[key].map(v=>`<button class="${profile[key]===v?'sel':''}" onclick="profile.${key}='${v}';renderCharacter()">${labels[v]}</button>`).join('')}
 function renderCharacter(){
- renderOption('faceOpts','face');renderOption('hairOpts','hair');renderOption('outfitOpts','outfit');renderOption('extraOpts','extra');
- $('themeOpts').innerHTML=Object.keys(themes).map(t=>`<button class="opt themeOpt ${profile.theme===t?'sel':''}" onclick="profile.theme='${t}';renderCharacter()">${t}</button>`).join('');
+ colourOptions('skinOpts','skin');colourOptions('hairColourOpts','hairColour');colourOptions('shirtOpts','shirt');
+ textOptions('hairStyleOpts','hairStyle');textOptions('accessoryOpts','accessory');
+ $('themeOpts').innerHTML=Object.keys(themes).map(t=>`<button class="opt themeOpt ${profile.theme===t?'sel':''}" onclick="profile.theme='${t}';applyTheme();renderCharacter()">${t}</button>`).join('');
  $('characterPreview').innerHTML=avatarHTML('large');$('profileName').value=profile.name||'';
 }
-function saveProfile(){profile.name=$('profileName').value.trim();localStorage.setItem('myday_profile',JSON.stringify(profile));refreshProfileUI();toast('My Day has been personalised ✨');go('home')}
+function saveProfile(){profile.name=$('profileName').value.trim();localStorage.setItem('myday_profile',JSON.stringify(profile));refreshProfileUI();renderCharacter();toast('My Day has been personalised ✨');go('home')}
 
 /* Parent */
 function parentGate(){const pin=prompt('Enter the parent passcode');if(pin===settings.pin)go('parent');else if(pin!==null)toast('That passcode is not correct.')}
@@ -333,7 +386,7 @@ $('installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;def
 /* service worker */
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}))}
 
-refreshProfileUI();showOnThisDay();
+refreshProfileUI();renderCharacter();showOnThisDay();
 </script>
 </body>
 </html>
